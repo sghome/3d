@@ -98,44 +98,40 @@
         <script>
         
         var audio, audioContext, audioSrc;
-        var analyser, analyserBufferLength;
-        var fftSize = 8192;
-        var smoothingTimeConstant = 0.65;
+    var analyser, analyserBufferLength;
+    var fftSize = 8192;
+    var smoothingTimeConstant = 0.65;
 
-        const glCanvas = document.getElementById('canvas');
-        const gl = glCanvas.getContext('webgl2');
-        const dpr = Math.max(.5, .5 * window.devicePixelRatio);
-        const touches = new Map();
+    const glCanvas = document.getElementById('canvas');
+    const gl = glCanvas.getContext('webgl2');
+    const dpr = Math.max(.5, .5 * window.devicePixelRatio);
+    const touches = new Map();
 
-        const vertexSource = `#version 300 es
-            precision highp float;
-            in vec2 position;
-            uniform float audioAmplitude;
+    const vertexSource = `#version 300 es
+        precision highp float;
+        in vec2 position;
+        uniform float audioAmplitude;
 
-            void main(void) {
-                vec2 newPosition = position + normalize(position) * audioAmplitude * 0.1;
-                gl_Position = vec4(newPosition, 0., 1.);
-            }
-        `;
+        void main(void) {
+            vec2 newPosition = position + normalize(position) * audioAmplitude * 0.1;
+            gl_Position = vec4(newPosition, 0., 1.);
+        }
+    `;
 
-
-
-
-
-   
- 
+    const fragmentSource = `#version 300 es
+        precision highp float;
+        out vec4 fragColor;
+        uniform vec2 resolution;
+        uniform vec2 touch;
+        uniform float time;
+        uniform int pointerCount;
+        uniform float audioAmplitude;
+        uniform vec3 color;
+    uniform vec2 offset;
+    uniform float scale;
+    uniform float rhythmAmplitude;
 
         
-        
-        
-        const fragmentSource = `#version 300 es
-            precision highp float;
-            out vec4 fragColor;
-            uniform vec2 resolution;
-            uniform vec2 touch;
-            uniform float time;
-            uniform int pointerCount;
-            uniform float audioAmplitude;
 
             #define P pointerCount
             #define T mod(10. + time * 2., 300.)
@@ -289,6 +285,28 @@
     let vertices = [];
     let touching = false;
 
+
+
+
+            let midiInfo; // Variable para almacenar información del MIDI
+
+    async function loadAndProcessMidi(midiFilePath) {
+        const response = await fetch(midiFilePath);
+        const midiData = await response.arrayBuffer();
+        const midi = new Midi(midiData);
+
+        // Guarda la información del MIDI para su uso posterior
+        midiInfo = {
+            chords: midi.tracks[0].notes.map((note) => note.name),
+            tempo: midi.header.tempos[0].bpm,
+            // Puedes agregar más propiedades según sea necesario
+        };
+
+        // Resto de la función...
+    }
+            
+            
+
     function resize() {
         const { innerWidth: width, innerHeight: height } = window;
         glCanvas.width = width * dpr;
@@ -381,6 +399,7 @@
     }
 
     function initAudio() {
+        await loadAndProcessMidi('ruta/al/archivo.midi');
         audioSetup('https://sghome.github.io/mp3/go.mp3');
         document.body.removeEventListener('click', initAudio);
     }
@@ -467,8 +486,130 @@
         // Agrega efectos de sonido adicionales según la amplitud
         playSoundEffect(audioAmplitude);
 
+        // Puedes agregar aquí la lógica para interactuar con el MIDI y actualizar el shader
+        interactWithMidi();
+
         requestAnimationFrame(animate);
     }
+
+
+
+// Función para interactuar con el archivo MIDI y actualizar el shader
+function interactWithMidi() {
+    const currentChordIndex = getCurrentChordIndex();
+    const currentChord = midiInfo.chords[currentChordIndex];
+
+    // Obtén el color asociado al acorde
+    const chordColor = chordToColor(currentChord);
+
+    // Pasa el color al shader
+    gl.uniform3f(gl.getUniformLocation(program, "color"), chordColor[0], chordColor[1], chordColor[2]);
+
+    // Ajusta la posición y escala de los elementos según la frecuencia del acorde
+    const chordFrequency = getChordFrequency(currentChord);
+    const positionScaleFactor = map(chordFrequency, 0, 1, 0.5, 2.0);
+    gl.uniform2f(gl.getUniformLocation(program, "offset"), audioAmplitude * positionScaleFactor, audioAmplitude * positionScaleFactor);
+    gl.uniform1f(gl.getUniformLocation(program, "scale"), 1.0 + audioAmplitude);
+
+    // Genera ritmo según el tempo del MIDI
+    const tempo = midiInfo.tempo;
+    const beatsPerMinute = tempo;
+    const beatsPerSecond = beatsPerMinute / 60;
+    const secondsPerBeat = 1 / beatsPerSecond;
+    const rhythmAmplitude = Math.sin(audioContext.currentTime * 2 * Math.PI * beatsPerSecond);
+
+    // Utiliza rhythmAmplitude para modular otras propiedades del shader
+    gl.uniform1f(gl.getUniformLocation(program, "rhythmAmplitude"), rhythmAmplitude);
+
+    // Puedes ajustar otras propiedades del shader según tu lógica
+    // por ejemplo, la intensidad de efectos visuales o la velocidad de animación
+    // gl.uniform1f(gl.getUniformLocation(program, "otraPropiedad"), rhythmAmplitude * 0.5);
+
+    // Puedes agregar más lógica según sea necesario
+}
+
+
+
+
+            function getCurrentChordIndex() {
+    const currentTime = audioContext.currentTime;
+    const beatsPerMinute = midiInfo.tempo;
+    const beatsPerSecond = beatsPerMinute / 60;
+    const secondsPerBeat = 1 / beatsPerSecond;
+    const totalBeats = currentTime / secondsPerBeat;
+
+    // Ahora, puedes calcular el índice del acorde actual
+    const currentChordIndex = Math.floor(totalBeats) % midiInfo.chords.length;
+
+    return currentChordIndex;
+}
+
+
+
+
+            function chordToColor(chord) {
+    // Lógica para asignar colores a los acordes
+    // Puedes usar el chord wheel o algún otro método
+    // Ajusta los valores de r, g, b según tu preferencia
+    const r = 1.0;
+    const g = 0.5;
+    const b = 0.2;
+
+    return [r, g, b];
+}
+
+
+
+            function interactWithMidi() {
+    const currentChordIndex = getCurrentChordIndex();
+    const currentChord = midiInfo.chords[currentChordIndex];
+
+    // Obtén el color asociado al acorde
+    const chordColor = chordToColor(currentChord);
+
+    // Pasa el color al shader
+    gl.uniform3f(gl.getUniformLocation(program, "color"), chordColor[0], chordColor[1], chordColor[2]);
+
+    // Ajusta la posición y escala de los elementos según la frecuencia del acorde
+    const chordFrequency = getChordFrequency(currentChord);
+    const positionScaleFactor = map(chordFrequency, 0, 1, 0.5, 2.0);
+    gl.uniform2f(gl.getUniformLocation(program, "offset"), audioAmplitude * positionScaleFactor, audioAmplitude * positionScaleFactor);
+    gl.uniform1f(gl.getUniformLocation(program, "scale"), 1.0 + audioAmplitude);
+
+    // Genera ritmo según el tempo del MIDI
+    const tempo = midiInfo.tempo;
+    const beatsPerMinute = tempo;
+    const beatsPerSecond = beatsPerMinute / 60;
+    const secondsPerBeat = 1 / beatsPerSecond;
+    const rhythmAmplitude = Math.sin(audioContext.currentTime * 2 * Math.PI * beatsPerSecond);
+
+    // Utiliza rhythmAmplitude para modular otras propiedades del shader
+    gl.uniform1f(gl.getUniformLocation(program, "rhythmAmplitude"), rhythmAmplitude);
+
+    // Puedes ajustar otras propiedades del shader según tu lógica
+    // por ejemplo, la intensidad de efectos visuales o la velocidad de animación
+    // gl.uniform1f(gl.getUniformLocation(program, "otraPropiedad"), rhythmAmplitude * 0.5);
+
+    // Puedes agregar más lógica según sea necesario
+}
+
+function getChordFrequency(chord) {
+    // Lógica para determinar la frecuencia del acorde
+    // Puedes mapear los acordes a valores de frecuencia según tus preferencias
+    // Ajusta los valores según tu visión creativa
+    return map(chord.intensity, 0, 1, 0.2, 0.8);
+}
+
+function map(value, inMin, inMax, outMin, outMax) {
+    // Función de mapeo para ajustar valores de un rango a otro
+    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
+
+// Resto del código...
+
+
+
+            
 
 function getColorFromAmplitude(amplitude) {
         // Ajusta los valores de color según la amplitud del audio
