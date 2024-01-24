@@ -53,10 +53,11 @@
      
         <script>
         
-      var audio, audioContext, audioSrc;
-        var analyser, analyserBufferLength;
-        var fftSize = 8192;
-        var smoothingTimeConstant = 0.65;
+     var audio, audioContext, audioSrc;
+var analyser, analyserBufferLength;
+var fftSize = 8192;
+var smoothingTimeConstant = 0.65;
+var audioAmplitude;
 
         const glCanvas = document.getElementById('canvas');
         const gl = glCanvas.getContext('webgl2');
