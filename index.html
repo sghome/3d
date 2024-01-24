@@ -6,7 +6,7 @@
     <title>Audio Visualization</title>
     
 <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi"></script>
-    <script src="https://sghome.github.io/3d/lib/midi.js.map"></script>
+   <!-- <script src="https://sghome.github.io/3d/lib/midi.js.map"></script> -->
 
 
 
@@ -53,39 +53,39 @@
      
         <script>
         
-        var audio, audioContext, audioSrc;
-    var analyser, analyserBufferLength;
-    var fftSize = 8192;
-    var smoothingTimeConstant = 0.65;
+      var audio, audioContext, audioSrc;
+        var analyser, analyserBufferLength;
+        var fftSize = 8192;
+        var smoothingTimeConstant = 0.65;
 
-    const glCanvas = document.getElementById('canvas');
-    const gl = glCanvas.getContext('webgl2');
-    const dpr = Math.max(.5, .5 * window.devicePixelRatio);
-    const touches = new Map();
+        const glCanvas = document.getElementById('canvas');
+        const gl = glCanvas.getContext('webgl2');
+        const dpr = Math.max(.5, .5 * window.devicePixelRatio);
+        const touches = new Map();
 
-    const vertexSource = `#version 300 es
-        precision highp float;
-        in vec2 position;
-        uniform float audioAmplitude;
+        const vertexSource = `#version 300 es
+            precision highp float;
+            in vec2 position;
+            uniform float audioAmplitude;
 
-        void main(void) {
-            vec2 newPosition = position + normalize(position) * audioAmplitude * 0.1;
-            gl_Position = vec4(newPosition, 0., 1.);
-        }
-    `;
+            void main(void) {
+                vec2 newPosition = position + normalize(position) * audioAmplitude * 0.1;
+                gl_Position = vec4(newPosition, 0., 1.);
+            }
+        `;
 
-    const fragmentSource = `#version 300 es
-        precision highp float;
-        out vec4 fragColor;
-        uniform vec2 resolution;
-        uniform vec2 touch;
-        uniform float time;
-        uniform int pointerCount;
-        uniform float audioAmplitude;
-        uniform vec3 color;
-    uniform vec2 offset;
-    uniform float scale;
-    uniform float rhythmAmplitude;
+        const fragmentSource = `#version 300 es
+            precision highp float;
+            out vec4 fragColor;
+            uniform vec2 resolution;
+            uniform vec2 touch;
+            uniform float time;
+            uniform int pointerCount;
+            uniform float audioAmplitude;
+            uniform vec3 color;
+            uniform vec2 offset;
+            uniform float scale;
+            uniform float rhythmAmplitude;
 
         
 
@@ -232,14 +232,14 @@
         }
     `;
 
-    let time;
-    let buffer;
-    let program;
-    let touchLoc;
-    let resolutionLoc;
-    let pointerCountLoc;
-    let vertices = [];
-    let touching = false;
+  let time;
+        let buffer;
+        let program;
+        let touchLoc;
+        let resolutionLoc;
+        let pointerCountLoc;
+        let vertices = [];
+        let touching = false;
 
 
 
@@ -354,20 +354,20 @@
         document.body.addEventListener('click', initAudio);
     }
 
-   async function initAudio() {
-    await loadAndProcessMidi('https://sghome.github.io/mp3/go.mid');
-    audioSetup('https://sghome.github.io/mp3/go.mp3');
-    document.body.removeEventListener('click', initAudio);
-}
+       async function initAudio() {
+            await loadAndProcessMidi('https://sghome.github.io/mp3/go.mid');
+            audioSetup('https://sghome.github.io/mp3/go.mp3');
+            document.body.removeEventListener('click', initAudio);
+        }
 
-    document.body.onload = init;
-    window.onresize = resize;
+        document.body.onload = init;
+        window.onresize = resize;
 
-    glCanvas.onpointerdown = e => {
-        if (touches.size === 2) touches.clear();
-        touching = true;
-        touches.set(e.pointerId, e);
-    };
+        glCanvas.onpointerdown = e => {
+            if (touches.size === 2) touches.clear();
+            touching = true;
+            touches.set(e.pointerId, e);
+        };
 
     glCanvas.onpointermove = e => {
         if (!touching) return;
