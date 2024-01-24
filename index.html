@@ -352,11 +352,11 @@
         document.body.addEventListener('click', initAudio);
     }
 
-    function initAudio() {
-        await loadAndProcessMidi('https://sghome.github.io/mp3/go.mid');
-        audioSetup('https://sghome.github.io/mp3/go.mp3');
-        document.body.removeEventListener('click', initAudio);
-    }
+   async function initAudio() {
+    await loadAndProcessMidi('https://sghome.github.io/mp3/go.mid');
+    audioSetup('https://sghome.github.io/mp3/go.mp3');
+    document.body.removeEventListener('click', initAudio);
+}
 
     document.body.onload = init;
     window.onresize = resize;
