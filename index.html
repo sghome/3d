@@ -8,52 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi"></script>
 
 
-    
- <script type="module">
-        import * as THREE from "https://cdn.skypack.dev/three@0.136.0";
-        import { GLTFLoader } from "https://cdn.skypack.dev/three@0.136.0/examples/jsm/loaders/GLTFLoader.js";
-        import { OrbitControls } from "https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls.js";
-
-        // Configuración de la escena
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // Configuración de la luz
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(ambientLight);
-
-        // Cargar el modelo GLB
-        const loader = new GLTFLoader();
-        const glbPath = 'https://cdn.glitch.me/764bc5af-2031-4a40-82a5-7a4337618c33/xr.glb';
-
-        loader.load(glbPath, (gltf) => {
-            const xrModel = gltf.scene;
-
-            // Ajustar posición y escala según tus necesidades
-            xrModel.scale.set(0.1, 0.1, 0.1);
-            xrModel.position.set(0, 0, 0);
-
-            scene.add(xrModel);
-
-            // Animación (opcional)
-            const animate = function () {
-                requestAnimationFrame(animate);
-
-                // Agregar animaciones o actualizaciones aquí si es necesario
-
-                renderer.render(scene, camera);
-            };
-
-            // Configuración de la cámara
-            camera.position.z = 5;
-
-            // Iniciar la animación
-            animate();
-        });
-    </script>
 
     <style>
         * {
@@ -66,11 +20,7 @@
             min-height: 100vh;
             overflow: hidden;
 
-            background: repeating-radial-gradient(
-                circle at center,
-                #444 0 10%,
-                #111 10% 20%
-            );
+           
 
             touch-action: none;
         }
